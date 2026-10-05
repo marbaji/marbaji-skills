@@ -46,7 +46,7 @@ bash skills/domain-check/scripts/check.sh --tlds "com io" brightpath
 
 Run the tests with `python3 -m pytest skills tests -q` (the `animated-figure` tests need its prerequisites; `npm install` in `skills/animated-figure/scripts` first).
 
-Before pushing, run `python3 tests/personal_data_scan.py --commits origin/main..HEAD`. It reads every commit you are about to push, including file names, commit messages and author details, for home-folder paths, personal email addresses and similar. A pushed branch is public at once, so CI would be too late. The scan finds known shapes of personal data, not all of it; read your diff as well.
+Once per clone, turn on the pre-push check: `git config core.hooksPath .githooks`. From then on every `git push` first reads the commits you are about to push, including file names, commit messages and author details, for home-folder paths, personal email addresses and similar, and stops the push if it finds any. A pushed branch is public at once, so CI would be too late. To run it by hand: `python3 tests/personal_data_scan.py --commits origin/main..HEAD`. The scan finds known shapes of personal data, not all of it; read your diff as well.
 
 ## Licence
 
