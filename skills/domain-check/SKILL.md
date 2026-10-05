@@ -12,17 +12,17 @@ Checks whether domain names are registered, from the terminal, with no account, 
 ## Run it
 
 ```bash
-bash <skill-dir>/scripts/check.sh acme-example brightpath.io
-bash <skill-dir>/scripts/check.sh --tlds "com ai io" acme-example brightpath
+bash "<skill-dir>/scripts/check.sh" acme-example brightpath.io
+bash "<skill-dir>/scripts/check.sh" --tlds "com ai io" acme-example brightpath
 ```
 
-A bare name is checked with each ending in `--tlds` (default `com`). A full domain is checked as given. Use `com` alone unless the user names other endings; for "any ending" use `--tlds "com ai io co app"`.
+A bare name is checked with each ending in `--tlds` (default `com`). A full domain is checked as given, and the two can be mixed in one run. Use `com` alone unless the user names other endings; for "any ending" use `--tlds "com ai io co app"`.
 
 Pass names that can be registered (`example.com`, `example.co.uk`), not host names (`www.example.com`): a host name has no registration record of its own, so its answer means nothing.
 
 ## Read the answer
 
-One line per domain, with the reason in brackets:
+One line per domain, already sorted with `AVAILABLE` first, and the reason in brackets. The exit status is 0 when every name got an answer (whatever the answers are), 1 for a bad argument, 2 when `curl` is missing, and 3 when a lookup died, in which case that name is printed as `UNCLEAR`.
 
 | Status | Meaning | What to tell the user |
 |---|---|---|
@@ -36,7 +36,7 @@ For a long list, run it in batches of about twenty; the lookup service slows cal
 
 ## How it decides
 
-It asks rdap.org, a public service that forwards a domain question to the registry running that ending. A registry's own answer is trusted. For endings the service has no registry for (`.io`, `.co`, `.de` among others), and when the service is rate-limited or slow, the script asks the system `whois` instead and reads its answer conservatively: a clear record is `TAKEN`, a clear not-found is `AVAILABLE`, anything else is `UNCLEAR`.
+It asks rdap.org, a public service that forwards a domain question to the registry running that ending. A registry's own answer is trusted. For endings the service has no registry for (`.io`, `.co`, `.de` among others), and when the service is rate-limited or slow, the script asks the system `whois` instead and reads its answer conservatively: a clear record is `TAKEN`, a clear not-found is `AVAILABLE`, anything else is `UNCLEAR`. The reason on each line says which of the two answered; a whois answer is as good as a registry answer when it is clear, it is only slower and more often `UNCLEAR`.
 
 ## Requirements
 

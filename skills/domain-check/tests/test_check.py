@@ -20,7 +20,11 @@ RECORD = b'{"objectClassName": "domain", "ldhName": "x"}'
 class Registry(BaseHTTPRequestHandler):
     def do_GET(self):
         name = self.path.rsplit("/", 1)[-1]
-        if name.startswith("taken"):
+        if "htmlmiss" in name:
+            self._send(404, "text/html", b"<html>404</html>")
+        elif name.startswith("empty"):
+            self._send(200, "application/rdap+json", b"{}")
+        elif name.startswith("taken"):
             self._send(200, "application/rdap+json", RECORD)
         elif name.startswith("page"):
             self._send(200, "text/html", b"<html>" + RECORD + b"</html>")
@@ -85,7 +89,7 @@ WHOIS_STUB = r"""#!/usr/bin/env bash
 case "$1" in
   taken*)    echo "Domain Name: $1"; echo "Registrar: Example Registrar"; echo "Creation Date: 2001-01-01" ;;
   free*|slow*) echo "Domain not found." ;;
-  quoted*)   echo "No match for domain \"$1\"." ;;
+  quoted*|ghost*) echo "No match for domain \"$1\"." ;;
   preamble*) echo "% IANA WHOIS server"; echo "status:       ACTIVE"; echo "created:      1985-01-01"; echo; echo "# whois.registry.example"; echo; echo "Domain not found." ;;
   rootonly*) echo "% IANA WHOIS server"; echo "status:       ACTIVE"; echo "created:      1985-01-01" ;;
   both*)     echo "Not found: $1"; echo "Registrar: Example Registrar" ;;
@@ -121,7 +125,10 @@ CASES = {
     # domain: (status, a phrase the reason must carry)
     "taken.com": ("TAKEN", "registry"),
     "free.com": ("AVAILABLE", "registry"),
-    "page.com": ("UNCLEAR", "without a registration record"),       # a 200 that is not a record
+    "page.com": ("UNCLEAR", "without a registration record"),       # a 200 that is a web page
+    "empty.com": ("UNCLEAR", "without a registration record"),      # the right content type, but no domain record in it
+    "taken-htmlmiss.com": ("TAKEN", "not a registry answer"),       # a web page's 404 is not "no such domain"
+    "ghostwriter.io": ("AVAILABLE", "whois: no registration record"),  # "host" inside the name itself
     "taken.io": ("TAKEN", "whois: registered"),                      # the service's own 404 is not an answer
     "free.io": ("AVAILABLE", "whois: no registration record"),
     "quoted.io": ("AVAILABLE", "whois: no registration record"),
@@ -166,7 +173,8 @@ def test_default_ending_is_com_and_a_full_domain_is_used_as_given(run):
     assert set(answers) == {"taken.com", "free.io"}
 
 
-@pytest.mark.parametrize("bad", ["two words", "semi;colon", "-lead.com", "under_score.com", "a..b.com", "$(id).com"])
+@pytest.mark.parametrize("bad", ["two words", "semi;colon", "-lead.com", "under_score.com", "a..b.com", "$(id).com",
+                                 "free.com\nextra", "free.com\n-h"])
 def test_invalid_input_is_refused_before_any_lookup(bad, run):
     r, answers = run("taken.com", bad)
     assert r.returncode == 1 and "not a domain name" in r.stderr
@@ -176,6 +184,27 @@ def test_invalid_input_is_refused_before_any_lookup(bad, run):
 def test_no_arguments_and_unknown_option_are_refused(run):
     assert run()[0].returncode == 1
     assert run("--fast", "taken.com")[0].returncode == 1
+
+
+def test_an_empty_or_pattern_ending_list_is_refused_or_taken_literally(run):
+    r, answers = run("--tlds", "", "taken")
+    assert r.returncode == 1 and answers == {}
+    r, answers = run("--tlds", "*", "taken")
+    assert r.returncode == 1 and "not a domain name" in r.stderr, "an ending is text, never a file pattern"
+
+
+@pytest.mark.parametrize("limit", ["0", "abc", "1.5", ""])
+def test_a_time_limit_that_is_not_a_positive_whole_number_is_refused(limit, run):
+    r, answers = run("taken.com", DOMAIN_CHECK_TIMEOUT=limit)
+    if limit == "":
+        assert r.returncode == 0, "an empty value means the default"
+    else:
+        assert r.returncode == 1 and answers == {}
+
+
+def test_help_prints_the_header_and_nothing_of_the_code(run):
+    r = subprocess.run(["bash", str(SCRIPT), "--help"], capture_output=True, text=True, check=False, timeout=OUTER_LIMIT)
+    assert r.returncode == 0 and "bash check.sh" in r.stdout and "set -u" not in r.stdout
 
 
 def test_a_lookup_that_dies_is_reported_unclear_with_exit_3(run, tmp_path):

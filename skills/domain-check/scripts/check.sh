@@ -25,6 +25,14 @@ set -u
 RDAP_BASE="${RDAP_BASE:-https://rdap.org/domain}"
 WHOIS_CMD="${WHOIS_CMD:-whois}"
 LIMIT="${DOMAIN_CHECK_TIMEOUT:-10}"
+case "$LIMIT" in
+  ''|*[!0-9]*|0*) echo "DOMAIN_CHECK_TIMEOUT must be a whole number of seconds, 1 or more" >&2; exit 1 ;;
+esac
+
+# The whole string must be a domain name: [[ =~ ]] anchors across newlines, where grep would
+# accept any one matching line.
+label='[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?'
+is_domain() { [[ $1 =~ ^${label}(\.${label})+$ ]]; }
 
 say() { printf '%-9s  %s  (%s)\n' "$1" "$2" "$3"; }
 
@@ -41,6 +49,8 @@ run_whois() {
   while kill -0 "$pid" 2>/dev/null; do
     if [ "$ticks" -ge $((LIMIT * 10)) ]; then
       kill "$pid" 2>/dev/null
+      sleep 0.3
+      kill -9 "$pid" 2>/dev/null   # for a whois that ignores the first signal
       wait "$pid" 2>/dev/null
       rm -f "$out"
       return 124
@@ -75,8 +85,9 @@ from_whois() {
   # Lines that only a registered domain's record carries.
   taken=$(printf '%s\n' "$low" | grep -cE '^[[:space:]]*(registrar:|creation date:|created:|registry domain id:|registered on:|status:[[:space:]]*(connect|active|registered))')
   # Lines that say there is no record, leaving out ones about a name server or host: those
-  # say something else was not found, not the domain.
-  free=$(printf '%s\n' "$low" | grep -E '^[[:space:]%>]*(no match|not found|domain not found|no entries found|no object found|no data found|the queried object does not exist|status:[[:space:]]*(free|available))' | grep -cvE 'name ?server|nserver|host')
+  # say something else was not found, not the domain. The domain itself is blanked first, so
+  # a name like ghostwriter.io is not mistaken for the word "host".
+  free=$(printf '%s\n' "$low" | awk -v d="$domain" '{ while ((i = index($0, d)) > 0) $0 = substr($0, 1, i - 1) "<domain>" substr($0, i + length(d)); print }' | grep -E '^[[:space:]%>]*(no match|not found|domain not found|no entries found|no object found|no data found|the queried object does not exist|status:[[:space:]]*(free|available))' | grep -cvE 'name ?server|nserver|host')
   if [ "$taken" -gt 0 ] && [ "$free" -gt 0 ]; then
     say UNCLEAR "$domain" "$why; whois gave both a record and a not-found line"
   elif [ "$taken" -gt 0 ]; then
@@ -99,7 +110,7 @@ check_one() {
   case "${code:-000}" in
     200)
       # A registration record, not just any page that answers 200.
-      if printf '%s' "${ctype:-}" | grep -qi 'rdap+json' && grep -qE '"objectClassName"[[:space:]]*:[[:space:]]*"domain"' "$body"; then
+      if printf '%s' "${ctype:-}" | grep -qi 'json' && grep -qE '"objectClassName"[[:space:]]*:[[:space:]]*"domain"' "$body"; then
         say TAKEN "$domain" "registry: registered"
       else
         from_whois "$domain" "lookup answered without a registration record"
@@ -107,10 +118,14 @@ check_one() {
     404)
       # Only a registry's own 404 means "no record". A 404 from the lookup service itself
       # means it has no registry for this ending, which says nothing about the domain.
-      if [ "$(host_of "${final:-}")" != "$(host_of "$RDAP_BASE")" ]; then
+      if [ "$(host_of "${final:-}")" = "$(host_of "$RDAP_BASE")" ]; then
+        from_whois "$domain" "no registry lookup for this ending"
+      elif printf '%s' "${ctype:-}" | grep -qi 'json'; then
+        # Registries answer "no such domain" in the registration-data format; a web page
+        # that happens to say 404 is not that answer.
         say AVAILABLE "$domain" "registry: no registration record"
       else
-        from_whois "$domain" "no registry lookup for this ending"
+        from_whois "$domain" "lookup ended on a page that is not a registry answer"
       fi ;;
     429) from_whois "$domain" "lookup rate-limited" ;;
     000) from_whois "$domain" "lookup timed out or unreachable" ;;
@@ -120,6 +135,7 @@ check_one() {
 }
 
 if [ "${1:-}" = "--one" ]; then
+  is_domain "${2:-}" || exit 1
   check_one "$2"
   exit 0
 fi
@@ -131,23 +147,26 @@ while [ $# -gt 0 ]; do
     --tlds)
       [ $# -ge 2 ] || { echo "--tlds needs a value, for example --tlds \"com ai\"" >&2; exit 1; }
       tlds=$2; shift 2 ;;
-    -h|--help) sed -n '2,24p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -h|--help) awk 'NR > 1 && !/^#/ { exit } NR > 1 { sub(/^# ?/, ""); print }' "$0"; exit 0 ;;
     --*) echo "unknown option $1" >&2; exit 1 ;;
     *) names+=("$1"); shift ;;
   esac
 done
 [ ${#names[@]} -gt 0 ] || { echo "usage: bash check.sh [--tlds \"com ai\"] name-or-domain [...]" >&2; exit 1; }
 
-label='[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?'
+set -f   # no filename expansion: an ending is text, never a pattern
+endings=()
+for t in $tlds; do endings+=("$(printf '%s' "$t" | tr '[:upper:]' '[:lower:]' | sed 's/^\.//')"); done
+[ ${#endings[@]} -gt 0 ] || { echo "--tlds needs at least one ending, for example --tlds \"com ai\"" >&2; exit 1; }
 domains=()
 for raw in "${names[@]}"; do
   name=$(printf '%s' "$raw" | tr '[:upper:]' '[:lower:]')
   case "$name" in
     *.*) candidates=("$name") ;;
-    *)   candidates=(); for t in $tlds; do candidates+=("$name.$(printf '%s' "$t" | tr '[:upper:]' '[:lower:]' | sed 's/^\.//')"); done ;;
+    *)   candidates=(); for t in "${endings[@]}"; do candidates+=("$name.$t"); done ;;
   esac
   for d in "${candidates[@]}"; do
-    printf '%s' "$d" | grep -qE "^${label}(\.${label})+$" || { echo "not a domain name: $raw" >&2; exit 1; }
+    is_domain "$d" || { echo "not a domain name: $raw" >&2; exit 1; }
     case " ${domains[*]:-} " in *" $d "*) ;; *) domains+=("$d") ;; esac
   done
 done
