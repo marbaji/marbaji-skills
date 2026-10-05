@@ -1,0 +1,28 @@
+name: tests
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install pytest pyyaml
+      # skills/animated-figure/tests run the real GIF exporter: Node, Playwright's Chromium, ffmpeg.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install ffmpeg
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+      - name: Install the exporter's dependencies
+        working-directory: skills/animated-figure/scripts
+        run: npm ci --no-audit --no-fund && npx playwright install --with-deps chromium
+      # Paths named on purpose: tests/ci_coverage.py reads this line.
+      - run: python3 -m pytest skills tests -q

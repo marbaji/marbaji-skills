@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Figure</title>
+<style>
+  html,body{margin:0;background:#F4F6F8}
+  @media (prefers-color-scheme:dark){html,body{background:#0E141B}}
+  #figure{margin:0}
+  #figure svg{display:block;width:100%;height:auto}
+</style>
+</head>
+<body>
+<!-- The whole figure is the svg element below: copy it into any web page and it animates there, with no script. -->
+<figure id="figure">
+<svg class="fig" viewBox="0 0 960 400" role="img" aria-labelledby="fig-t" xmlns="http://www.w3.org/2000/svg">
+  <title id="fig-t">Describe in one or two sentences what the figure shows and what happens in it.</title>
+  <style>
+    .fig{--card:#FFFFFF;--line:#C9D1D9;--ink:#22303C;--muted:#66727F;--accent:#0F766E;--accent-soft:#D5EEEA;--note:#FFD84D;
+      font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+    @media (prefers-color-scheme:dark){.fig{--card:#18212B;--line:#3A4755;--ink:#E6EDF3;--muted:#9AA7B4;--accent:#4FD1C5;--accent-soft:#1E4A47;--note:#E3B341}}
+    .lbl{font-size:22px;font-weight:600;fill:var(--ink)}
+    .point{font-size:30px;font-weight:700;fill:var(--accent)}
+    /* One duration for everything. Waiting is written into the keyframes, never as animation-delay. */
+    .token,.point{animation-duration:8s;animation-iteration-count:infinite;animation-timing-function:ease-in-out}
+    .token{animation-name:token}.point{animation-name:point}
+    /* beat 1: the token appears and crosses */
+    @keyframes token{0%,5%{opacity:0;transform:translateX(0)}10%{opacity:1;transform:translateX(0)}45%,96%{opacity:1;transform:translateX(520px)}100%{opacity:0;transform:translateX(520px)}}
+    /* last beat: the point appears, then everything holds until 96% and fades for the next loop */
+    @keyframes point{0%,55%{opacity:0;transform:translateY(8px)}60%,96%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(0)}}
+    /* No motion wanted: show the finished picture, the same one the loop holds at its end. */
+    @media (prefers-reduced-motion:reduce){.fig *{animation:none !important}.token{transform:translateX(520px)}}
+  </style>
+  <rect x="1" y="1" width="958" height="398" rx="16" fill="var(--card)" stroke="var(--line)" stroke-width="2"/>
+
+  <!-- the still parts: draw these first and look at them before animating anything -->
+  <rect x="120" y="130" width="100" height="100" rx="14" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2.5"/>
+  <text class="lbl" x="170" y="272" text-anchor="middle">Start</text>
+  <path d="M250 180 H710" fill="none" stroke="var(--line)" stroke-width="3" stroke-dasharray="3 9" stroke-linecap="round"/>
+  <rect x="740" y="130" width="100" height="100" rx="14" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2.5"/>
+  <text class="lbl" x="790" y="272" text-anchor="middle">End</text>
+
+  <!-- the moving part -->
+  <circle class="token" cx="220" cy="180" r="18" fill="var(--note)" stroke="var(--ink)" stroke-width="2.5"/>
+
+  <!-- the last frame states the point -->
+  <text class="point" x="480" y="348" text-anchor="middle">Say the point here.</text>
+</svg>
+</figure>
+</body>
+</html>

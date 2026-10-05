@@ -1,0 +1,21 @@
+{
+  "name": "marbaji-skills",
+  "owner": {
+    "name": "Mohannad Arbaji"
+  },
+  "metadata": {
+    "description": "Claude Code skills that work on anyone's machine: each one self-contained, tested, and tried by a fresh session before it ships.",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "marbaji-skills",
+      "source": "./",
+      "description": "Self-contained Claude Code skills: animated explainer figures exported as GIFs, and domain-name availability checks.",
+      "skills": [
+        "./skills/animated-figure",
+        "./skills/domain-check"
+      ]
+    }
+  ]
+}
