@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Halving search</title>
+<style>
+  html,body{margin:0;background:#F4F6F8}
+  @media (prefers-color-scheme:dark){html,body{background:#0E141B}}
+  #figure{margin:0}
+  #figure svg{display:block;width:100%;height:auto}
+</style>
+</head>
+<body>
+<!-- The whole figure is the svg element below: copy it into any web page and it animates there, with no script. -->
+<figure id="figure">
+<svg class="fig" viewBox="0 0 960 400" role="img" aria-labelledby="fig-t" xmlns="http://www.w3.org/2000/svg">
+  <title id="fig-t">Sixteen boxes in a row, one holding a dot. A bar under the row marks where the dot can still be; it halves four times until it sits under the one box. Sixteen boxes, four looks.</title>
+  <style>
+    .fig{--card:#FFFFFF;--line:#C9D1D9;--ink:#22303C;--muted:#66727F;--accent:#0F766E;--accent-soft:#D5EEEA;--note:#FFD84D;
+      font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+    @media (prefers-color-scheme:dark){.fig{--card:#18212B;--line:#3A4755;--ink:#E6EDF3;--muted:#9AA7B4;--accent:#4FD1C5;--accent-soft:#1E4A47;--note:#E3B341}}
+    .lbl{font-size:22px;font-weight:600;fill:var(--muted)}
+    .point{font-size:30px;font-weight:700;fill:var(--accent)}
+    .box{fill:var(--card);stroke:var(--ink);stroke-width:2.5}
+    .bar,.out,.pip,.point{animation-duration:10s;animation-iteration-count:infinite;animation-timing-function:ease-in-out}
+    /* The bar is the one thing that moves: it marks where the dot can still be. */
+    .bar{transform-box:fill-box;transform-origin:left center;animation-name:bar}
+    @keyframes bar{0%,6%{opacity:1;transform:translateX(0px) scaleX(1.0000)}13%,24%{opacity:1;transform:translateX(432px) scaleX(0.4965)}31%,42%{opacity:1;transform:translateX(432px) scaleX(0.2448)}49%,60%{opacity:1;transform:translateX(540px) scaleX(0.1189)}67%,96%{opacity:1;transform:translateX(540px) scaleX(0.0559)}98%{opacity:0;transform:translateX(540px) scaleX(0.0559)}99%{opacity:0;transform:translateX(0px) scaleX(1.0000)}100%{opacity:1;transform:translateX(0px) scaleX(1.0000)}}
+    /* After each look, the half that was ruled out goes pale. */
+    .o1{animation-name:o1}.o2{animation-name:o2}.o3{animation-name:o3}.o4{animation-name:o4}
+    @keyframes o1{0%,15%{opacity:1}19%,96%{opacity:.18}100%{opacity:1}}
+    @keyframes o2{0%,33%{opacity:1}37%,96%{opacity:.18}100%{opacity:1}}
+    @keyframes o3{0%,51%{opacity:1}55%,96%{opacity:.18}100%{opacity:1}}
+    @keyframes o4{0%,69%{opacity:1}73%,96%{opacity:.18}100%{opacity:1}}
+    /* One pip per look. */
+    .p1{animation-name:p1}.p2{animation-name:p2}.p3{animation-name:p3}.p4{animation-name:p4}
+    @keyframes p1{0%,6%{opacity:0}9%,96%{opacity:1}100%{opacity:0}}
+    @keyframes p2{0%,24%{opacity:0}27%,96%{opacity:1}100%{opacity:0}}
+    @keyframes p3{0%,42%{opacity:0}45%,96%{opacity:1}100%{opacity:0}}
+    @keyframes p4{0%,60%{opacity:0}63%,96%{opacity:1}100%{opacity:0}}
+    @keyframes point{0%,75%{opacity:0;transform:translateY(8px)}79%,96%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(0)}}
+    .point{animation-name:point}
+    /* No motion wanted: show the finished picture, the same one the loop holds at its end. */
+    @media (prefers-reduced-motion:reduce){.fig *{animation:none !important}.bar{transform:translateX(540px) scaleX(0.0559)}.out{opacity:.18}}
+  </style>
+  <rect x="1" y="1" width="958" height="398" rx="16" fill="var(--card)" stroke="var(--line)" stroke-width="2"/>
+
+  <!-- sixteen boxes; the dot is in one of them -->
+  <g class="out o1"><rect class="box" x="51" y="120" width="48" height="64" rx="8"/><rect class="box" x="105" y="120" width="48" height="64" rx="8"/><rect class="box" x="159" y="120" width="48" height="64" rx="8"/><rect class="box" x="213" y="120" width="48" height="64" rx="8"/><rect class="box" x="267" y="120" width="48" height="64" rx="8"/><rect class="box" x="321" y="120" width="48" height="64" rx="8"/><rect class="box" x="375" y="120" width="48" height="64" rx="8"/><rect class="box" x="429" y="120" width="48" height="64" rx="8"/></g>
+  <g class="out o3"><rect class="box" x="483" y="120" width="48" height="64" rx="8"/><rect class="box" x="537" y="120" width="48" height="64" rx="8"/></g>
+  <rect x="591" y="120" width="48" height="64" rx="8" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="2.5"/>
+  <circle cx="615" cy="152" r="10" fill="var(--accent)"/>
+  <g class="out o4"><rect class="box" x="645" y="120" width="48" height="64" rx="8"/></g>
+  <g class="out o2"><rect class="box" x="699" y="120" width="48" height="64" rx="8"/><rect class="box" x="753" y="120" width="48" height="64" rx="8"/><rect class="box" x="807" y="120" width="48" height="64" rx="8"/><rect class="box" x="861" y="120" width="48" height="64" rx="8"/></g>
+
+  <rect class="bar" x="51" y="200" width="858" height="12" rx="6" fill="var(--accent)"/>
+
+  <text class="lbl" x="51" y="270">Looks</text>
+  <g fill="none" stroke="var(--muted)" stroke-width="2.5"><circle cx="150" cy="262" r="10"/><circle cx="184" cy="262" r="10"/><circle cx="218" cy="262" r="10"/><circle cx="252" cy="262" r="10"/></g>
+  <g fill="var(--accent)"><circle class="pip p1" cx="150" cy="262" r="10"/><circle class="pip p2" cx="184" cy="262" r="10"/><circle class="pip p3" cx="218" cy="262" r="10"/><circle class="pip p4" cx="252" cy="262" r="10"/></g>
+
+  <text class="point" x="480" y="348" text-anchor="middle">16 boxes, 4 looks.</text>
+</svg>
+</figure>
+</body>
+</html>

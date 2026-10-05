@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>An answer kept nearby</title>
+<style>
+  html,body{margin:0;background:#F4F6F8}
+  @media (prefers-color-scheme:dark){html,body{background:#0E141B}}
+  #figure{margin:0}
+  #figure svg{display:block;width:100%;height:auto}
+</style>
+</head>
+<body>
+<!-- The whole figure is the svg element below: copy it into any web page and it animates there, with no script. -->
+<figure id="figure">
+<svg class="fig" viewBox="0 0 960 420" role="img" aria-labelledby="fig-t" xmlns="http://www.w3.org/2000/svg">
+  <title id="fig-t">A question travels the long way to a library and the answer travels back into a notes slot. When the same question comes up again, the answer hops straight out of the notes. Second time: no trip.</title>
+  <style>
+    .fig{--card:#FFFFFF;--line:#C9D1D9;--ink:#22303C;--muted:#66727F;--accent:#0F766E;--accent-soft:#D5EEEA;--note:#FFD84D;
+      font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+    @media (prefers-color-scheme:dark){.fig{--card:#18212B;--line:#3A4755;--ink:#E6EDF3;--muted:#9AA7B4;--accent:#4FD1C5;--accent-soft:#1E4A47;--note:#E3B341}}
+    .lbl{font-size:22px;font-weight:600;fill:var(--ink)}
+    .point{font-size:30px;font-weight:700;fill:var(--accent)}
+    /* One loop, one duration. Every wait lives inside the keyframes, never in animation-delay. */
+    .q1,.pg,.q2,.cp,.point{animation-duration:10s;animation-iteration-count:infinite;animation-timing-function:ease-in-out}
+    .q2{transform-box:fill-box;transform-origin:center}
+    .q1{animation-name:q1}.pg{animation-name:pg}.q2{animation-name:q2}.cp{animation-name:cp}.point{animation-name:point}
+    /* 1. the question walks to the library */
+    @keyframes q1{0%,4%{opacity:0;transform:translateX(0)}8%{opacity:1;transform:translateX(0)}26%{opacity:1;transform:translateX(410px)}30%,100%{opacity:0;transform:translateX(410px)}}
+    /* 2. the answer walks back and stays in the notes */
+    @keyframes pg{0%,30%{opacity:0;transform:translateX(0)}34%{opacity:1;transform:translateX(0)}52%,96%{opacity:1;transform:translateX(-485px)}100%{opacity:0;transform:translateX(-485px)}}
+    /* 3. the same question again */
+    @keyframes q2{0%,58%{opacity:0;transform:scale(.6)}62%,96%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1)}}
+    /* 4. this time the answer only hops out of the notes */
+    @keyframes cp{0%,64%{opacity:0;transform:translate(0,0)}66%{opacity:1;transform:translate(0,0)}72%,96%{opacity:1;transform:translate(-62px,-80px)}100%{opacity:0;transform:translate(-62px,-80px)}}
+    /* 5. the point, then a hold of about two seconds before everything fades for the next loop */
+    @keyframes point{0%,74%{opacity:0;transform:translateY(8px)}78%,96%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(0)}}
+    /* No motion wanted: show the finished picture, the same one the loop holds at its end. */
+    @media (prefers-reduced-motion:reduce){.fig *{animation:none !important}.q1{opacity:0}.pg{transform:translateX(-485px)}.cp{transform:translate(-62px,-80px)}}
+  </style>
+  <rect x="1" y="1" width="958" height="418" rx="16" fill="var(--card)" stroke="var(--line)" stroke-width="2"/>
+
+  <!-- you -->
+  <g fill="var(--ink)"><circle cx="120" cy="170" r="18"/><rect x="98" y="194" width="44" height="56" rx="16"/></g>
+  <text class="lbl" x="120" y="292" text-anchor="middle">You</text>
+
+  <!-- your notes: an empty slot the answer will fill -->
+  <rect x="200" y="160" width="70" height="72" rx="10" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2.5" stroke-dasharray="6 6"/>
+  <text class="lbl" x="235" y="292" text-anchor="middle">Notes</text>
+
+  <!-- the long way -->
+  <path d="M300 196 H730" fill="none" stroke="var(--line)" stroke-width="3" stroke-dasharray="3 9" stroke-linecap="round"/>
+
+  <!-- the library -->
+  <g fill="var(--ink)">
+    <path d="M750 162 L820 122 L890 162 Z"/>
+    <rect x="762" y="170" width="14" height="64"/><rect x="792" y="170" width="14" height="64"/><rect x="834" y="170" width="14" height="64"/><rect x="864" y="170" width="14" height="64"/>
+    <rect x="746" y="238" width="148" height="12" rx="3"/>
+  </g>
+  <text class="lbl" x="820" y="292" text-anchor="middle">Library</text>
+
+  <g class="q1"><circle cx="310" cy="196" r="20" fill="var(--note)"/><text x="310" y="204" text-anchor="middle" font-size="24" font-weight="700" fill="#22303C">?</text></g>
+  <g class="pg"><rect x="703" y="175" width="34" height="42" rx="4" fill="var(--card)" stroke="var(--ink)" stroke-width="2.5"/><path d="M711 187 H729 M711 196 H729 M711 205 H724" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round"/></g>
+  <g class="q2"><circle cx="120" cy="116" r="20" fill="var(--note)"/><text x="120" y="124" text-anchor="middle" font-size="24" font-weight="700" fill="#22303C">?</text></g>
+  <g class="cp"><rect x="218" y="175" width="34" height="42" rx="4" fill="var(--card)" stroke="var(--ink)" stroke-width="2.5"/><path d="M226 187 H244 M226 196 H244 M226 205 H239" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round"/></g>
+
+  <text class="point" x="480" y="368" text-anchor="middle">Second time: no trip.</text>
+</svg>
+</figure>
+</body>
+</html>
