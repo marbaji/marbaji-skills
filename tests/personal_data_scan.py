@@ -29,7 +29,9 @@ OWNER_NAMES = ["mohan" + "nad", "arb" + "aji"]  # the handle contains the second
 # line and the plugin manifest.
 OWNER_ALLOWED_FILES = ("README.md", "LICENSE")
 OWNER_ALLOWED_FOLDER = ".claude-plugin/"
-PRIVATE_WORDS = ["chalk" + "talk", "obsid" + "ian", "10-" + "projects", "20-" + "areas", "30-" + "repos",
+# A link to a private Claude Code session: harmless to click, but it does not belong in public history.
+SESSION_LINK = "claude.ai/code/" + "session"
+PRIVATE_WORDS = [SESSION_LINK, "chalk" + "talk", "obsid" + "ian", "10-" + "projects", "20-" + "areas", "30-" + "repos",
                  "90-" + "archive", "work-" + "principles"]
 # A home folder followed by any user name, with or without anything after it.
 HOME_PATH = re.compile(rb"/(users|home)/[^\s/\"'`<>)(,;]")

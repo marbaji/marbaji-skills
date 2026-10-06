@@ -67,6 +67,7 @@ PLANTED = {
     "owner surname": ("Arb" + "aji", "owner's name 'arb"),
     "owner handle": ("github.com/mar" + "baji/x", "owner's name 'arb"),
     "personal email": ("someone" + "@" + "gmail.com", "email address 'someone"),
+    "session link": ("https://claude.ai/code/" + "session_01ABC", "private word 'claude.ai/code/"),
     "one-letter email": ("a" + "@" + "t.co", "email address 'a"),
 }
 
